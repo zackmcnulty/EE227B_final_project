@@ -1,1 +1,3 @@
-# EE227B_final_project
+# EE227B (Convex Optimization) : Final Project
+
+
