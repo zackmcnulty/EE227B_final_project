@@ -8,9 +8,10 @@ function estMMSE = MMSE(H, r, N, modOrd,pskModulator, pskDemodulator, snrLinear)
 % 	% If booleanizing to {-1,1}
 % 	estMMSE = -sign(estMMSE);
 	% If booleanizing to {0,1}
-	estMMSE = sign(estMMSE - 0.5);
-	estMMSE(estMMSE == -1) = 0;
-	estMMSE = 1 - estMMSE;
+% 	estMMSE = sign(estMMSE - 0.5);
+% 	estMMSE(estMMSE == -1) = 0;
+% 	estMMSE = 1 - estMMSE;
+    estMMSE = pskDemodulator(estMMSE);
 
 % MMSE-SIC receiver
 %     % Initialization

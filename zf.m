@@ -23,9 +23,9 @@ function estZF = zf(H, r, N, modOrd,pskModulator, pskDemodulator)
         decBits = pskDemodulator(G(k,:) * H' * r);
         estZF(modOrd * (symNum-1) + (1:modOrd)) = decBits;
 
-        % Subtract the effect of the last decoded symbol from r
-        if n < N
-            r = r - H(:, k) * pskModulator(decBits);
-        end
+%         % Subtract the effect of the last decoded symbol from r
+%         if n < N
+%             r = r - H(:, k) * pskModulator(decBits);
+%         end
     end
 end

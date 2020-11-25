@@ -1,3 +1,4 @@
+clear;
 %% parameters
 N = 2;                  % Number of transmit antennas
 M = 2;                  % Number of receive antennas
@@ -74,6 +75,9 @@ for idx = 1:length(EbNoVec)
 
         estZF = zf(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator);
         estMMSE = MMSE(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator, snrLinear(idx));
+%         [Chan_real, rxSig_real] = complex2real(rayleighChan, rxSig);
+%         estMMSE_c = MMSE(Chan_real, rxSig_real, 2*N, modOrd, pskModulator, pskDemodulator, snrLinear(idx));
+%         estMMSE = estMMSE_c(1:end/2);
         estML = ML(rayleighChan, rxSig, N, modOrd,allTxSig, allBits);
 
         % Update BER
