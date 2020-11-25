@@ -1,7 +1,7 @@
 %% parameters
-N = 10;                  % Number of transmit antennas
-M = 10;                  % Number of receive antennas
-EbNoVec = 2:2:16;        % Eb/No in dB
+N = 2;                  % Number of transmit antennas
+M = 2;                  % Number of receive antennas
+EbNoVec = 2:4:14;        % Eb/No in dB
 modOrd = 1;             % constellation size = 2^modOrd
 %% setup simulation
 % Create a local random stream to be used by random number generators for
@@ -31,19 +31,19 @@ allTxSig = reshape(pskModulator(allBits(:)), N, 2^(modOrd*N));
 % Pre-allocate variables to store BER results for speed
 [BER_ZF, BER_MMSE, BER_ML, BER_DSP] = deal(zeros(length(EbNoVec), 3));
 
- % Flat Rayleigh fading channel with independent links
-% rayleighChan = (randn(stream, M, N) +  1i*randn(stream, M, N))/sqrt(2);
-rayleighChan = randn(stream, M, N);
 %% Evaluation
+% Calculate SNR from EbNo for each independent transmission link
+snrIndB = EbNoVec + 10*log10(modOrd);
+snrLinear = 10.^(0.1*snrIndB);
 % Set up a figure for visualizing BER results
 fig = figure;
 grid on;
 hold on;
 ax = fig.CurrentAxes;
 ax.YScale = 'log';
-xlim([EbNoVec(1)-0.01 EbNoVec(end)]);
-ylim([1e-12 1e-1]);
-xlabel('Eb/No (dB)');
+xlim([snrIndB(1)-0.01 snrIndB(end)]);
+ylim([1e-5 1e-1]);
+xlabel('SNR (dB)');
 ylabel('BER');
 fig.NumberTitle = 'off';
 fig.Renderer = 'zbuffer';
@@ -57,50 +57,41 @@ for idx = 1:length(EbNoVec)
     reset(zfBERCalc);
     reset(mmseBERCalc);
     reset(mlBERCalc);
-%     reset(dspBERCalc);
 
-    % Calculate SNR from EbNo for each independent transmission link
-    snrIndB = EbNoVec(idx) + 10*log10(modOrd);
-    snrLinear = 10^(0.1*snrIndB);
-
-%     while (BER_ZF(idx, 3) < 1e5) && ((BER_MMSE(idx, 2) < 10) || ...
-%           (BER_ZF(idx, 2) < 10) ||  (BER_ML(idx, 2)   < 10))
-    for i=1:1e5
+    while (BER_ZF(idx, 3) < 1e5) && ((BER_MMSE(idx, 2) < 100) || ...
+          (BER_ZF(idx, 2) < 100) ||  (BER_ML(idx, 2)   < 100))
         % Create random bit vector to modulate
         msg = randi(stream, [0 1], [N*modOrd, 1]);
 
         % Modulate data
         txSig = pskModulator(msg);
 
-        % Add noise to faded data
-        rxSig = real(awgn(rayleighChan*txSig, snrIndB, 0, stream));
+        % Flat Rayleigh fading channel with independent links
+        rayleighChan = (randn(stream, M, N) +  1i*randn(stream, M, N))/sqrt(2);
 
-        % Estimation with ZF/ MMSE/ ML
+        % Add noise to faded data
+        rxSig = awgn(rayleighChan*txSig, snrIndB(idx), 0, stream);
+
         estZF = zf(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator);
-        estMMSE = MMSE(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator, snrLinear);
+        estMMSE = MMSE(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator, snrLinear(idx));
         estML = ML(rayleighChan, rxSig, N, modOrd,allTxSig, allBits);
-%         estDSP = sdp_relax(rayleighChan, rxSig);
 
         % Update BER
         BER_ZF(  idx, :) = zfBERCalc(msg, estZF);
         BER_MMSE(idx, :) = mmseBERCalc(msg, estMMSE);
         BER_ML(  idx, :) = mlBERCalc(msg, estML);
-%         BER_DSP(  idx, :) = mlBERCalc(msg, estDSP);
     end
 
     % Plot results
-    semilogy(EbNoVec(1:idx), BER_ZF(  1:idx, 1), 'r*', ...
-             EbNoVec(1:idx), BER_MMSE(1:idx, 1), 'bo', ...
-             EbNoVec(1:idx), BER_ML(  1:idx, 1), 'gs', ...
-             EbNoVec(1:idx), BER_DSP(  1:idx, 1), 'c.');
-    legend('ZF-SIC', 'MMSE-SIC', 'ML', 'DSP');
+    semilogy(snrIndB(1:idx), BER_ZF(  1:idx, 1), 'r*', ...
+             snrIndB(1:idx), BER_MMSE(1:idx, 1), 'bo', ...
+             snrIndB(1:idx), BER_ML(  1:idx, 1), 'gs');
+    legend('ZF-SIC', 'MMSE-SIC', 'ML');
     drawnow;
 end
-
 % Draw the lines
-semilogy(EbNoVec, BER_ZF(  :, 1), 'r-', ...
-         EbNoVec, BER_MMSE(:, 1), 'b-', ...
-         EbNoVec, BER_ML(  :, 1), 'g-', ...
-         EbNoVec, BER_DSP( :, 1), 'c-');
+semilogy(snrIndB, BER_ZF(  :, 1), 'r-', ...
+         snrIndB, BER_MMSE(:, 1), 'b-', ...
+         snrIndB, BER_ML(  :, 1), 'g-');
 hold off;
-
+saveas(fig,'MIMO.png');

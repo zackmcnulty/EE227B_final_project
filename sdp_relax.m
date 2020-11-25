@@ -1,4 +1,4 @@
-function [x, min_val] = sdp_relax(rho, H, y)
+function [x, min_val] = sdp_relax(H, y)
 % Given a real channel matrix H, a SNR rho and y is the received channel
 % output a feasible binary x and its associated optimal value
 
@@ -8,8 +8,8 @@ n = size(H,1);
 
 y = reshape(y, [n,1]);
 
-A = rho/n * (H.')*H;
-B = -sqrt(rho/n) * (H.') * y;
+A = (H.')*H;
+B = (H.') * y;
 C = (y.')*y;
 
 Q = [A, B; 
@@ -53,5 +53,6 @@ end
 
 % feasible x
 x = argmin(end) * argmin(1:end-1).';
+min_val
 end
 

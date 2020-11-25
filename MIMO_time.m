@@ -1,7 +1,7 @@
 %% parameters
 N = 2;                  % Number of transmit antennas
 M = 2;                  % Number of receive antennas
-EbNoVec = 2:2:16;        % Eb/No in dBtx
+EbNoVec = 2:4:14;        % Eb/No in dBtx
 modOrd = 1;             % constellation size = 2^modOrd
 memory_length = 2;
 num_symbol = 5;
@@ -111,17 +111,13 @@ for idx = 1:length(EbNoVec)
 
     % Plot results
     semilogy(EbNoVec(1:idx), BER_ZF(  1:idx, 1), 'r*', ...
-             EbNoVec(1:idx), BER_MMSE(1:idx, 1), 'bo', ...
-             EbNoVec(1:idx), BER_ML(  1:idx, 1), 'gs', ...
-             EbNoVec(1:idx), BER_DSP(  1:idx, 1), 'c.');
-    legend('ZF-SIC', 'MMSE-SIC', 'ML', 'DSP');
+             EbNoVec(1:idx), BER_MMSE(1:idx, 1), 'bo');
+    legend('ZF-SIC', 'MMSE-SIC');
     drawnow;
 end
 
 % Draw the lines
 semilogy(EbNoVec, BER_ZF(  :, 1), 'r-', ...
-         EbNoVec, BER_MMSE(:, 1), 'b-', ...
-         EbNoVec, BER_ML(  :, 1), 'g-', ...
-         EbNoVec, BER_DSP( :, 1), 'c-');
+         EbNoVec, BER_MMSE(:, 1), 'b-');
 hold off;
-
+saveas(fig,'MIMO_time.png');
