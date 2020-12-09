@@ -96,7 +96,7 @@ for idx = 1:length(EbNoVec)
              snrIndB(1:idx), BER_MMSE(1:idx, 1), 'bo', ...
              snrIndB(1:idx), BER_ML(  1:idx, 1), 'gs', ...
              snrIndB(1:idx), BER_SDP(  1:idx, 1), 'kx');
-    legend('ZF-SIC', 'MMSE-SIC', 'ML');
+    legend('ZF-SIC', 'MMSE-SIC', 'ML', 'SDP');
     drawnow;
 end
 % Draw the lines
