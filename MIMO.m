@@ -61,7 +61,7 @@ for idx = 1:length(EbNoVec)
     reset(sdpBERCalc);
 
     while (BER_ZF(idx, 3) < 1e5) && ((BER_MMSE(idx, 2) < 50) || ...
-          (BER_ZF(idx, 2) < 50) ||  (BER_ML(idx, 2)   < 50) || (BER_SDP(idx, 2)   < 50))
+          (BER_ZF(idx, 2) < 50) ||  (BER_ML(idx, 2)   < 50)||  (BER_SDP(idx, 2)   < 100))
         % Create random bit vector to modulate
         msg = randi([0 1],1,N)';
 
@@ -75,13 +75,13 @@ for idx = 1:length(EbNoVec)
         % Add noise to faded data
         rxSig = awgn(rayleighChan*txSig, snrIndB(idx),'measured', stream);
 
-        estZF = zf(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator);
-        estMMSE = MMSE(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator, snrLinear(idx));
+        estZF = zf(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator, false);
+        estMMSE = MMSE(rayleighChan, rxSig, N, modOrd, pskModulator, pskDemodulator, snrLinear(idx), false);
 %         [Chan_real, rxSig_real] = complex2real(rayleighChan, rxSig);
 %         estMMSE_c = MMSE(Chan_real, rxSig_real, 2*N, modOrd, pskModulator, pskDemodulator, snrLinear(idx));
 %         estMMSE = estMMSE_c(1:end/2);
         estML = ML(rayleighChan, rxSig, N, modOrd,allTxSig, allBits);
-        estSDP = sdp(rayleighChan, rxSig, N, M, pskDemodulator,snrLinear(idx), msg, txSig);
+        estSDP = sdp(rayleighChan, rxSig, N, pskDemodulator);
 %         estSDP = estSDP(1:end/2);
 
         % Update BER
@@ -96,7 +96,7 @@ for idx = 1:length(EbNoVec)
              snrIndB(1:idx), BER_MMSE(1:idx, 1), 'bo', ...
              snrIndB(1:idx), BER_ML(  1:idx, 1), 'gs', ...
              snrIndB(1:idx), BER_SDP(  1:idx, 1), 'kx');
-    legend('ZF-SIC', 'MMSE-SIC', 'ML', 'SDP');
+    legend('ZF-SIC', 'MMSE-SIC', 'ML');
     drawnow;
 end
 % Draw the lines

@@ -1,9 +1,13 @@
-function estZF = zf(H, r, N, modOrd,pskModulator, pskDemodulator)
+function estZF = zf(H, r, N, modOrd,pskModulator, pskDemodulator, one_shot)
 % Given a real channel matrix H, a SNR rho and y is the received channel
 % output a feasible binary x and its associated optimal value
 
 % ZF-SIC receiver
-       
+if one_shot
+% one-shot
+    G = (H'*H) \ eye(N); % Same as inv(H'*H), but faster
+    estZF = pskDemodulator(G * H' * r);
+else      
     % Initialization
     estZF = zeros(N*modOrd, 1);
     orderVec = 1:N;
@@ -28,4 +32,5 @@ function estZF = zf(H, r, N, modOrd,pskModulator, pskDemodulator)
             r = r - H(:, k) * pskModulator(decBits);
         end
     end
+end
 end
