@@ -1,8 +1,8 @@
 %% parameters
 clear all; close all; clc;
 
-N = 10;                 % Number of transmit antennas
-M = 10;                 % Number of receive antennas
+N = 2;                 % Number of transmit antennas
+M = 2;                 % Number of receive antennas
 EbNoVec = 2:2:16;      % Eb/No in dB
 modOrd = 1;            % BPSK modulation (do not change); constellation size = 2^modOrd
 ntrials = 1e5;         % number of samples to use to approximate BER
@@ -11,7 +11,7 @@ ntrials = 1e5;         % number of samples to use to approximate BER
 num_matrices = 1e2;
 ntrials_per_matrix = ntrials/num_matrices;
 
-epsilon = 2;         %  amount of uncertainty in channel matrix (e.g. rowwise L1 error <= epsilon)
+epsilon = 5;         %  amount of uncertainty in channel matrix (e.g. rowwise L1 error <= epsilon)
 
 %% setup simulation
 % Create a local random stream to be used by random number generators for
@@ -60,6 +60,7 @@ fig.Renderer = 'zbuffer';
 fig.Name = 'Spatial Multiplexing';
 title('Uncoded BPSK System');
 set(fig,'DefaultLegendAutoUpdate','off');
+
 
 % Loop over selected EbNo points
 for idx = 1:length(EbNoVec)
