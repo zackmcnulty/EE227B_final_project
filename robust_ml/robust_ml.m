@@ -1,13 +1,18 @@
 %% parameters
 clear all; close all; clc;
 
-N = 2;                  % Number of transmit antennas
-M = 2;                  % Number of receive antennas
-EbNoVec = 2:2:16;        % Eb/No in dB
-modOrd = 1;             % BPSK modulation (do not change); constellation size = 2^modOrd
-ntrials = 1e5;          % number of samples to use to approximate BER
+N = 10;                 % Number of transmit antennas
+M = 10;                 % Number of receive antennas
+EbNoVec = 2:2:16;      % Eb/No in dB
+modOrd = 1;            % BPSK modulation (do not change); constellation size = 2^modOrd
+ntrials = 1e5;         % number of samples to use to approximate BER
 
-epsilon = 0;            % uncertainty in the channel matrix
+
+num_matrices = 1e2;
+ntrials_per_matrix = ntrials/num_matrices;
+
+epsilon = 2;         %  amount of uncertainty in channel matrix (e.g. rowwise L1 error <= epsilon)
+
 %% setup simulation
 % Create a local random stream to be used by random number generators for
 % repeatability.
@@ -37,7 +42,7 @@ allTxSig = reshape(pskModulator(allBits(:)), N, 2^(modOrd*N));
 
  % Flat Rayleigh fading channel with independent links
 % rayleighChan = (randn(stream, M, N) +  1i*randn(stream, M, N))/sqrt(2);
-rayleighChan = randn(stream, M, N);
+rayleighChan = randn(stream, M, N); % nominal channel matrix
 
 %% Evaluation
 % Set up a figure for visualizing BER results
@@ -63,35 +68,44 @@ for idx = 1:length(EbNoVec)
     reset(L2_BERCalc);
     reset(mlBERCalc);
 
-
     % Calculate SNR from EbNo for each independent transmission link
     snrIndB = EbNoVec(idx) + 10*log10(modOrd);
     snrLinear = 10^(0.1*snrIndB);
-
-%     while (BER_ZF(idx, 3) < 1e5) && ((BER_MMSE(idx, 2) < 10) || ...
-%           (BER_ZF(idx, 2) < 10) ||  (BER_ML(idx, 2)   < 10))
-    for j=1:ntrials
-        % Create random bit vector to modulate
-        msg = randi(stream, [0 1], [N*modOrd, 1]);
-
-        % Modulate data
-        txSig = pskModulator(msg);
-
-        % Add noise to faded data
-        rxSig = real(awgn(rayleighChan*txSig, snrIndB, 0, stream));
-
-        % Estimation with ZF/ MMSE/ ML
-        estL1 = pskDemodulator(L1_norm_ball(rayleighChan, rxSig, epsilon, allTxSig));
-        estL2 = pskDemodulator(L2_norm_ball(rayleighChan, rxSig, epsilon, allTxSig));
-        estML = ML(rayleighChan, rxSig, N, modOrd,allTxSig, allBits);
-
-        % Update BER
-        BER_L1(  idx, :) = L1_BERCalc(msg, estL1);
-        BER_L2(idx, :) = L2_BERCalc(msg, estL2);
-        BER_ML(  idx, :) = mlBERCalc(msg, estML);
+   
+    for jj=1:num_matrices
         
-    end
+        % add uncertainty to channel
+        p = 2;                                   % Lp rowwise error
+        U = rand(stream, M,N) - 0.5;
+        U = (epsilon * U ./ vecnorm(U,p,2) ) .* rand(stream, M,1);
+        uncertainChannel = rayleighChan + U;     % true channel = nominal + uncertainty
 
+
+        for j=1:ntrials_per_matrix
+
+
+            % Create random bit vector to modulate
+            msg = randi(stream, [0 1], [N*modOrd, 1]);
+
+            % Modulate data
+            txSig = pskModulator(msg);
+
+
+            % Add noise to faded data
+            rxSig = real(awgn(uncertainChannel*txSig, snrIndB, 'measured', stream));
+
+            % Estimation with ML, L1-robust ML, L2-robust ML
+            estL1 = L1_norm_ball(rayleighChan, rxSig, epsilon, allTxSig, allBits);
+            estL2 = L2_norm_ball(rayleighChan, rxSig, epsilon, allTxSig, allBits);
+            estML = ML(rayleighChan, rxSig, N, modOrd,allTxSig, allBits);
+
+            % Update BER
+            BER_L1(  idx, :) = L1_BERCalc(msg, estL1);
+            BER_L2(idx, :) = L2_BERCalc(msg, estL2);
+            BER_ML(  idx, :) = mlBERCalc(msg, estML);
+
+        end
+    end
     % Plot results
     semilogy(EbNoVec(1:idx), BER_L1(  1:idx, 1), 'r*', ...
              EbNoVec(1:idx), BER_L2(1:idx, 1), 'bo', ...
