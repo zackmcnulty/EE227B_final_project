@@ -5,12 +5,12 @@ clc
 Nr = 32; % number of receive antennas
 Nt = 32; % number of transmit antennas
 fade_var = 1; % fade variance of the channel
-rep = 1; % number of replications
+rep = 1000; % number of replications
 M = 30; % number samples
 
 
 %------------------------------------------------------
-BER_round = zeros(1, 20); 
+
 BER_rad = zeros(1, 20); 
 BER_nor = zeros(1, 20); 
 BER_pcs = zeros(1, 20); 
@@ -86,19 +86,22 @@ for i = 1:rep
 
             
             %New heuristic
-            %x0 = 1-2*randi([0 1],1,Nt+1)';
-            x0 = [dec_round ;1];
+            %sensible to initial point - look for better ways of initialization (use SDP?)
+            x0 = 1-2*randi([0 1],1,Nt+1)';
+
             [xpcs, ~] = PCSBFGS( fname, 'cuad', x0 );
             xpcs = 2*(xpcs>0)-1;
+            xpcs(end) =[];
             [xmpi, ~] = MetPuntosInteriores( fname, gname, x0);
             xmpi = 2*(xmpi>0)-1;
+            xmpi(end) =[];
+            
             
             % bit error rate 
-            BER_round(j) = BER_round(j) + nnz(seq-dec_round')/Nt;
             BER_rad(j) = BER_rad(j) + nnz(seq-x)/Nt;
             BER_nor(j) = BER_nor(j) + nnz(seq-nest_round)/Nt;
-            BER_pcs(j) = BER_pcs(j) + nnz(seq-xpcs)/Nt;
-            BER_mpi(j) = BER_mpi(j) + nnz(seq-xmpi)/Nt;
+            BER_pcs(j) = BER_pcs(j) + nnz(seq-xpcs')/Nt;
+            BER_mpi(j) = BER_mpi(j) + nnz(seq-xmpi')/Nt;
              
         end
         j = j+1;
@@ -107,5 +110,17 @@ end
 
 
 
+%Plots
 
+fig = figure;
+hax = axes;
+hold on
+plot([1:1:20],BER_rad, '-o','LineWidth',1.5);
+plot([1:1:20],BER_nor,'-+','LineWidth',1.5);
+plot([1:1:20],BER_pcs,'-*','LineWidth',1.5);
+plot([1:1:20],BER_mpi,'-s','LineWidth',1.5);
+xlabel('SNR_dB')
+ylabel('BER')
+legend('Rademacher round', 'Nesterov-round' ,'PCS', 'IPM');
+hold off
 

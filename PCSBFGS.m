@@ -67,6 +67,7 @@ while(norm(v) > tol && iter < maxiter)
     y = w1 - w2;
     z = s'*B*s;
     
+
     if( s'*y >= (0.2)*z )
         theta = 1;
     else
@@ -90,6 +91,7 @@ while(norm(v) > tol && iter < maxiter)
       
     vparo = gx + J'*lambda;
     v = [vparo; hx];
+    x = 2*(x>0)-1;
     disp(sprintf('%2.0f  %2.12f %2.12f' ,iter, norm(v),alfa) )
 end
   
