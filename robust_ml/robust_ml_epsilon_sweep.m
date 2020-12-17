@@ -15,16 +15,16 @@ clear all; close all; clc;
 
 N = 10;                 % Number of transmit antennas
 M = 10;                 % Number of receive antennas
-EbNo = 20;             % Eb/No in dB
+EbNo = 10;             % Eb/No in dB
 modOrd = 1;            % BPSK modulation (do not change); constellation size = 2^modOrd
 ntrials = 1e5;         % number of samples to use to approximate BER
 
 
-num_matrices = 10;                          % number of uncertain matrices to draw from uncertainty set and test
+num_matrices = 100;                          % number of uncertain matrices to draw from uncertainty set and test
 ntrials_per_matrix = ntrials/num_matrices;   % number of signals to use each uncertain matrix for
 
-p = 1;                      % Lp rowwise error
-epsilons = 1:1:10;         %  amount of uncertainty in channel matrix (e.g. rowwise L1 error <= epsilon)
+p = 2;                      % Lp rowwise error
+epsilons = 0.5:0.1:1.25;         %  amount of uncertainty in channel matrix (e.g. rowwise L1 error <= epsilon)
 
 %% setup simulation
 % Create a local random stream to be used by random number generators for
@@ -66,7 +66,7 @@ ax = fig.CurrentAxes;
 ax.YScale = 'log';
 xlim([epsilons(1)-0.01, epsilons(end)+0.5]);
 %ylim([1e-12 1e-1]);
-xlabel('epsilon)');
+xlabel('\epsilon');
 ylabel('BER');
 fig.NumberTitle = 'off';
 fig.Renderer = 'zbuffer';
