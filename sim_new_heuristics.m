@@ -5,16 +5,16 @@ clc
 Nr = 32; % number of receive antennas
 Nt = 32; % number of transmit antennas
 fade_var = 1; % fade variance of the channel
-rep = 1000; % number of replications
+rep = 100; % number of replications
 M = 30; % number samples
 
 
 %------------------------------------------------------
-
-BER_rad = zeros(1, 20); 
-BER_nor = zeros(1, 20); 
-BER_pcs = zeros(1, 20); 
-BER_mpi = zeros(1, 20); 
+l = length(0.5:0.5:10); 
+BER_rad = zeros(1, l+1); 
+BER_nor = zeros(1, l+1); 
+BER_pcs = zeros(1, l+1); 
+BER_mpi = zeros(1, l+1); 
 fname = 'fnme';
 gname = 'bnd';
 global L
@@ -33,7 +33,7 @@ for i = 1:rep
     % awgn
     noise = normrnd(0,1,Nr,1);
 
-    for SNR_dB = 2:1:20
+    for SNR_dB = 0.5:0.5:10
         % SNR parameters
         noise_var = (10^(0.1*SNR_dB)*Nt)/(1*Nt*Nr);
         Hn = sqrt(noise_var).*H;
@@ -86,9 +86,8 @@ for i = 1:rep
 
             
             %New heuristic
-            %sensible to initial point - look for better ways of initialization (use SDP?)
-            x0 = 1-2*randi([0 1],1,Nt+1)';
-
+            %x0 = 1-2*randi([0 1],1,Nt+1)';
+            x0 = [dec_round ;1];
             [xpcs, ~] = PCSBFGS( fname, 'cuad', x0 );
             xpcs = 2*(xpcs>0)-1;
             xpcs(end) =[];
@@ -108,17 +107,20 @@ for i = 1:rep
     end
 end
 
-
+BER_rad = BER_rad/rep;
+BER_nor = BER_nor/rep;
+BER_pcs = BER_pcs/rep;
+BER_mpi = BER_mpi/rep;
 
 %Plots
 
 fig = figure;
 hax = axes;
 hold on
-plot([1:1:20],BER_rad, '-o','LineWidth',1.5);
-plot([1:1:20],BER_nor,'-+','LineWidth',1.5);
-plot([1:1:20],BER_pcs,'-*','LineWidth',1.5);
-plot([1:1:20],BER_mpi,'-s','LineWidth',1.5);
+plot([0.5:0.5:10],BER_rad(1:20), '-o','LineWidth',1.5);
+plot([0.5:0.5:10],BER_nor(1:20),'-+','LineWidth',1.5);
+plot([0.5:0.5:10],BER_pcs(1:20),'-*','LineWidth',1.5);
+plot([0.5:0.5:10],BER_mpi(1:20),'-s','LineWidth',1.5);
 xlabel('SNR_dB')
 ylabel('BER')
 legend('Rademacher round', 'Nesterov-round' ,'PCS', 'IPM');
