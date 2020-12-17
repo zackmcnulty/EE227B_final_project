@@ -1,8 +1,8 @@
+% This code is modified base on https://www.mathworks.com/help/comm/ug/spatial-multiplexing.html
 % This file tests various pre-existing algorithms for the MIMO detection
 % problem (ZF, MMSE, ML, and the SDP relaxation) and compares their
 % accuracy on a range of possible SNRs (EbNoVec).
-
-%
+clear;
 %% parameters
 N = 10;                  % Number of transmit antennas
 M = 10;                  % Number of receive antennas
@@ -65,7 +65,7 @@ for idx = 1:length(EbNoVec)
     reset(sdpBERCalc);
 
     while (BER_ZF(idx, 3) < 1e5) && ((BER_MMSE(idx, 2) < 50) || ...
-          (BER_ZF(idx, 2) < 50) ||  (BER_ML(idx, 2)   < 50)||  (BER_SDP(idx, 2)   < 100))
+          (BER_ZF(idx, 2) < 50) ||  (BER_ML(idx, 2)   < 50)||  (BER_SDP(idx, 2) < 50))
         % Create random bit vector to modulate
         msg = randi([0 1],1,N)';
 

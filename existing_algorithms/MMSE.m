@@ -3,8 +3,8 @@ function estMMSE = MMSE(H, r, N, modOrd,pskModulator, pskDemodulator, snrLinear,
 % output a feasible binary x and its associated optimal value
 if one_shot
 % One shot estimator
-	estMMSE = sqrt(snrLinear / N) * H' * ((eye(N) + snrLinear / N * (H * H')) \ r);
-    estMMSE = pskDemodulator(estMMSE);
+    G = (H'*H + (N/snrLinear)*eye(N)) \ eye(N);
+    estMMSE = pskDemodulator(G * H' * r);
 else
 % MMSE-SIC receiver
     % Initialization
